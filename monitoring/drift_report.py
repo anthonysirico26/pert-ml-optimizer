@@ -1,8 +1,8 @@
 from pathlib import Path
 import pandas as pd
 import numpy as np
-from evidently.report import Report
-from evidently.metric_preset import DataDriftPreset, DataQualityPreset
+from evidently.legacy.report import Report
+from evidently.legacy.metric_preset import DataDriftPreset, DataQualityPreset
 
 TRAINING_DATA_PATH = Path(__file__).parent.parent / "data" / "sample_tasks.csv"
 REPORT_OUTPUT_PATH = Path(__file__).parent / "drift_report.html"
@@ -25,11 +25,11 @@ def simulate_production_data(reference: pd.DataFrame, n: int = 200) -> pd.DataFr
     production["team_size"] = (
         production["team_size"] * rng.uniform(1.2, 1.8, size=n)
     ).clip(1, 20).astype(int)
-    
+
     production["pessimistic"] = (
         production["pessimistic"] * rng.uniform(1.1, 1.4, size=n)
     ).round(2)
-    
+
     production["pert_expected"] = (
         (production["optimistic"] + 4 * production["most_likely"] + production["pessimistic"]) / 6
     ).round(2)
@@ -54,16 +54,18 @@ def run_drift_report(save_path: Path = REPORT_OUTPUT_PATH):
     print(f"Drift report saved → {save_path}")
 
     result = report.as_dict()
-    drift_metric = result["metrics"][0]["result"]
-    n_drifted = drift_metric.get("number_of_drifted_columns", 0)
-    n_total = drift_metric.get("number_of_columns", len(FEATURE_COLS))
-    share = drift_metric.get("share_of_drifted_columns", 0)
+    drift_result = result["metrics"][0]["result"]
+
+    n_drifted = drift_result.get("number_of_drifted_columns", 0)
+    n_total = drift_result.get("number_of_columns", len(FEATURE_COLS))
+    share = drift_result.get("share_of_drifted_columns", 0)
+    dataset_drift = drift_result.get("dataset_drift", False)
 
     print(f"\nDrift Summary:")
     print(f"  Drifted features: {n_drifted}/{n_total} ({share*100:.1f}%)")
-    print(f"  Dataset drift detected: {drift_metric.get('dataset_drift', False)}")
+    print(f"  Dataset drift detected: {dataset_drift}")
 
-    if drift_metric.get("dataset_drift"):
+    if dataset_drift:
         print("\n  Significant drift detected. Model retraining recommended.")
     else:
         print("\n  Drift within acceptable range. Model still valid.")
