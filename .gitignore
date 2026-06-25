@@ -3,6 +3,5 @@ __pycache__/
 *.pkl
 *.json
 .pytest_cache/
-monitoring/drift_report.html
 .env
 .venv/
