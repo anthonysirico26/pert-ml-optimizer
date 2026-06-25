@@ -27,6 +27,33 @@ This tool closes that gap: take historical project data, learn from it, and surf
 ---
 
 ## Architecture
+```
+Raw Project Data (CSV)
+        │
+        ▼
+┌─────────────────────┐
+│   PERT Engine       │  Classical three-point estimation
+│   (pert.py)         │  Critical path analysis
+└────────┬────────────┘
+         │
+         ▼
+┌─────────────────────┐
+│   ML Layer          │  XGBoost duration predictor
+│   (model.py)        │  Trained on historical task features
+└────────┬────────────┘
+         │
+         ▼
+┌─────────────────────┐
+│   FastAPI Service   │  REST endpoint for real-time scoring
+│   (api/main.py)     │  Returns PERT estimate + ML prediction
+└────────┬────────────┘
+         │
+         ▼
+┌─────────────────────┐
+│   Monitoring Layer  │  Data drift detection via Evidently AI
+│   (monitoring/)     │  Alerts when input distribution shifts
+└─────────────────────┘
+```
 
 ---
 
@@ -139,6 +166,27 @@ pytest tests/ -v
 ---
 
 ## Project Structure
+
+```
+pert-ml-optimizer/
+├── data/
+│   ├── generate_data.py      # Synthetic project task data generator
+│   └── sample_tasks.csv      # Example dataset
+├── docs/                     # Screenshots and diagrams
+├── models/
+│   ├── train.py              # XGBoost training pipeline
+│   ├── predict.py            # Inference wrapper
+│   └── pert.py               # PERT calculation engine
+├── api/
+│   ├── main.py               # FastAPI app
+│   └── schemas.py            # Pydantic request/response models
+├── monitoring/
+│   └── drift_report.py       # Evidently AI drift detection
+├── tests/
+│   └── test_pert.py          # Unit tests for PERT engine
+├── requirements.txt
+└── README.md
+```
 
 ---
 
